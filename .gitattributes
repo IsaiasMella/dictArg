@@ -1,0 +1,25 @@
+# Finales de línea, de una vez.
+#
+# Sin esto, git convertía a CRLF al checkoutear en Windows y avisaba en cada commit
+# ("LF will be replaced by CRLF"). Además de ruidoso, rompía el test de conformidad
+# del contrato: `contract.json` quedaba con CRLF en disco y el volcado lo genera con
+# LF, así que la comparación fallaba por el checkout y no por una diferencia real.
+#
+# LF en el árbol de trabajo y en el repositorio. Windows, Rust, Node y los editores
+# modernos lo manejan sin problema.
+* text=auto eol=lf
+
+# Binarios: que git no los toque ni intente diferenciarlos.
+*.png   binary
+*.ico   binary
+*.icns  binary
+*.exe   binary
+*.msi   binary
+*.dmg   binary
+*.sig   binary
+*.woff  binary
+*.woff2 binary
+
+# Los .cmd y .bat de Windows sí necesitan CRLF: con LF, cmd.exe los interpreta mal.
+*.cmd text eol=crlf
+*.bat text eol=crlf

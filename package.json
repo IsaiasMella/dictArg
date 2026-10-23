@@ -1,0 +1,23 @@
+{
+  "name": "voice-monorepo",
+  "private": true,
+  "version": "0.2.2",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/desktop"
+  ],
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
+    "desktop": "npm run --workspace apps/desktop",
+    "dev": "npm run start --workspace apps/desktop",
+    "build": "npm run empaquetar --workspace apps/desktop",
+    "build:web": "npm run build --workspace apps/desktop",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "check": "npm run typecheck && npm run test"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}

@@ -1,0 +1,66 @@
+name: CI
+
+# Corre en cada push y en cada PR, no sólo al publicar.
+#
+# Antes el único workflow se disparaba con tags `v*`, así que un commit roto en `main`
+# se descubría el día que se quería publicar: en el peor momento y con la peor
+# información.
+#
+# Windows es la plataforma principal del producto y la única donde compila el hook de
+# teclado (`WH_KEYBOARD_LL`), así que la validación corre ahí.
+
+on:
+  push:
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela la corrida anterior: no tiene sentido
+# esperar el resultado de un commit que ya fue reemplazado.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Tipos, lint y tests
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ./apps/desktop/src-tauri -> target
+
+      - run: npm ci
+
+      # `--workspaces` recorre los workspaces del `package.json` raíz.
+      - name: Tipos de TypeScript
+        run: npm run typecheck
+
+      - name: Tests de TypeScript
+        run: npm test
+
+      - name: Que el frontend compile
+        run: npm run build:web
+
+      # `-D warnings` convierte cada warning en error. Hoy el proyecto está limpio;
+      # esto es lo que hace que siga estándolo sin depender de que alguien mire.
+      - name: Clippy
+        run: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Tests de Rust
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+
+      # No compila el bundle —eso es caro y es trabajo del workflow de release— pero sí
+      # verifica que el crate entero, tests incluidos, compile.
+      - name: Que Rust compile
+        run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets

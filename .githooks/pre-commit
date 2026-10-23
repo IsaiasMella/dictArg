@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+# Rechaza commits que contengan credenciales.
+#
+# Existe porque una key de Groq quedó en un documento del repo desde el primer
+# commit y sobrevivió meses porque nadie la buscaba. Borrar la línea no la saca
+# del historial, así que la única defensa útil es no dejarla entrar.
+#
+# Usa `gitleaks` si está instalado. Si no, cae a un barrido propio de patrones conocidos:
+# menos completo, pero la alternativa era no tener nada en las máquinas sin gitleaks.
+#
+# Saltear en una emergencia real: `git commit --no-verify`.
+
+set -uo pipefail
+
+if command -v gitleaks >/dev/null 2>&1; then
+  if ! gitleaks protect --staged --redact --no-banner; then
+    echo ""
+    echo "  gitleaks encontró una credencial en lo que estás por commitear."
+    echo "  Sacala del cambio. Si ya se publicó alguna vez, ROTALA: borrarla no alcanza."
+    exit 1
+  fi
+  exit 0
+fi
+
+# ── Fallback sin gitleaks ────────────────────────────────────────────────────────────
+# Sólo el contenido agregado (líneas '+'), para no re-marcar lo que ya está en el repo.
+
+added=$(git diff --cached --unified=0 --diff-filter=ACM -- . ':(exclude).githooks/pre-commit' \
+        | grep '^+' | grep -v '^+++' || true)
+
+[ -z "$added" ] && exit 0
+
+# nombre|patrón. Los patrones son de formato, no de largo mínimo trivial: un fragmento
+# truncado de credencial también es un hallazgo (aquella key se filtró truncada).
+patrones=(
+  "Groq|gsk_[A-Za-z0-9]{4,}"
+  "OpenAI|sk-[A-Za-z0-9_-]{12,}"
+  "Anthropic|sk-ant-[A-Za-z0-9_-]{8,}"
+  "AWS|AKIA[0-9A-Z]{16}"
+  "GitHub|gh[pousr]_[A-Za-z0-9]{20,}"
+  "Deepgram|[Dd][Ee][Ee][Pp][Gg][Rr][Aa][Mm][^\n]{0,40}[=:][[:space:]]*['\"]?[a-f0-9]{32,}"
+  "Clave privada|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+  "Firma de Tauri|TAURI_SIGNING_PRIVATE_KEY[[:space:]]*[=:][[:space:]]*[^$\{[:space:]]"
+)
+
+encontrado=0
+for entrada in "${patrones[@]}"; do
+  nombre="${entrada%%|*}"
+  patron="${entrada#*|}"
+  if echo "$added" | grep -qE -- "$patron"; then
+    [ "$encontrado" -eq 0 ] && echo "" && echo "  Credenciales detectadas en el cambio:"
+    echo "    · $nombre"
+    encontrado=1
+  fi
+done
+
+if [ "$encontrado" -eq 1 ]; then
+  echo ""
+  echo "  Sacalas del cambio. Si ya se publicaron alguna vez, ROTALAS:"
+  echo "  borrar la línea no las saca del historial de git."
+  echo ""
+  echo "  (Instalá gitleaks para una detección más completa: https://github.com/gitleaks/gitleaks)"
+  exit 1
+fi
+
+exit 0

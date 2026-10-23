@@ -1,0 +1,264 @@
+/* La ventana de la pastilla es transparente: todo lo que no pinte el .pill
+   deja ver el escritorio. Nada acá debe capturar el mouse (además la ventana
+   tiene ignore_cursor_events desde Rust).
+
+   Los colores y las tipografías son **los mismos que la ventana principal**.
+   Antes no lo eran: la pastilla tenía su propio fondo azulado, su propia fuente
+   y acentos azul y verde que en el resto de la aplicación no existen. Es la
+   superficie que el usuario ve todo el día, y era la que menos se parecía al
+   producto. */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #171717;
+  --text: #fefefe;
+  --text-2: #d6d6d6;
+  --muted: #8a8a8a;
+
+  /* El fondo de la cápsula va translúcido para que se apoye sobre lo que haya
+     detrás en vez de recortarse contra el escritorio. */
+  --skin: rgba(23, 23, 23, 0.92);
+  --edge: rgba(255, 255, 255, 0.1);
+
+  --font: "Instrument Sans", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "Cascadia Mono", Consolas, ui-monospace, monospace;
+
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* La ventana es más alta que la pastilla para que entre la cápsula de grabando
+   con su sombra. El contenido va pegado abajo y no centrado: así la barrita
+   queda cerca de la barra de tareas en vez de flotar a media altura, y este
+   `padding-bottom` es el ajuste fino (tiene hot reload, no recompila Rust). */
+#pill-root {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 420px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--skin);
+  border: 1px solid var(--edge);
+  /* Dos sombras: una difusa que despega la cápsula del fondo, y una línea
+     clarísima arriba adentro que simula el brillo del borde superior. Es lo que
+     hace que se vea como un objeto y no como un rectángulo pintado. */
+  box-shadow: 0 16px 40px -12px rgba(9, 9, 9, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  animation: pill-in 200ms var(--ease);
+  transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+}
+
+/* Aparece creciendo desde abajo, que es de donde viene. */
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+.pill__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- idle: una barrita, sin punto ni texto ---
+   En reposo no hay nada que comunicar. Se anulan el padding y el gap de `.pill`
+   para que las medidas de abajo manden. Mantiene el fondo oscuro y el borde
+   claro de la cápsula para que se siga viendo tanto sobre fondo claro como
+   oscuro. */
+.pill--idle {
+  width: 38px;
+  height: 7px;
+  padding: 0;
+  gap: 0;
+  opacity: 0.5;
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 10px rgba(9, 9, 9, 0.5);
+}
+
+/* --- grabando ---
+   En blanco y negro, como el resto de la pastilla y de la aplicación: la paleta es
+   monocromática. Antes era rojo. */
+.pill--recording {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pill--recording .pill__label {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+/* El canvas se dimensiona solo desde JS (ancho por cantidad de barras y alto
+   fijo), escalado por devicePixelRatio para que no salga borroso en HiDPI. */
+.pill__wave {
+  display: block;
+  flex: none;
+}
+
+/* La instrucción para frenar: presente sólo mientras graba, y en tono apagado
+   para que no compita con el cronómetro. */
+.pill__hint {
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--muted);
+  padding-left: 9px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* La consulta del tope de duración. A diferencia de `pill__hint`, ésta
+   no está apagada: si nadie la lee, el dictado se corta solo. */
+.pill__ask {
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text);
+  padding-left: 9px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* El borde late para que se note desde el rabillo del ojo: quien está dictando
+   está mirando otra ventana, no la pastilla. */
+.pill--asking {
+  border-color: rgba(255, 180, 80, 0.7);
+  animation: pill-ask 1.1s ease-in-out infinite;
+}
+
+@keyframes pill-ask {
+  0%, 100% { border-color: rgba(255, 180, 80, 0.35); }
+  50%      { border-color: rgba(255, 180, 80, 0.9); }
+}
+
+/* Quien pidió menos animación no necesita que le latan las cosas en pantalla. */
+@media (prefers-reduced-motion: reduce) {
+  .pill--asking { animation: none; border-color: rgba(255, 180, 80, 0.7); }
+}
+
+/* --- procesando ---
+   Mismo tamaño y lugar que la onda de voz: las barras siguen ahí y pasan a
+   moverse solas, en blanco. Es lo que hace Wispr Flow y es lo que dice "estoy
+   trabajando" sin que la pastilla cambie de forma. */
+.pill--processing {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.pill--processing .pill__label {
+  color: var(--text);
+}
+
+.pill__loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  flex: none;
+}
+
+.pill__loader i {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--text);
+  animation: loader-wave 1s ease-in-out infinite;
+}
+
+/* Desfasadas para que la ola corra de izquierda a derecha. */
+.pill__loader i:nth-child(2) { animation-delay: 0.12s; }
+.pill__loader i:nth-child(3) { animation-delay: 0.24s; }
+.pill__loader i:nth-child(4) { animation-delay: 0.36s; }
+.pill__loader i:nth-child(5) { animation-delay: 0.48s; }
+
+@keyframes loader-wave {
+  0%, 100% {
+    transform: scaleY(0.22);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Con las animaciones apagadas no hay movimiento, pero **algo** tiene que
+   cambiar: una pastilla quieta mientras espera es una pastilla que parece
+   colgada. Un fundido lento no es movimiento y sí dice "sigo acá". */
+@keyframes loader-fade {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+/* --- resultado --- */
+.pill__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* El éxito se dice en blanco, no en verde: el texto ya se pegó y el usuario lo
+   está viendo aparecer. Un semáforo de colores para confirmar algo que ya pasó
+   es ruido. */
+.pill--success {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.pill--success .pill__glyph {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.pill--error {
+  background: rgba(36, 27, 25, 0.94);
+  border-color: rgba(255, 122, 90, 0.5);
+}
+
+.pill--error .pill__glyph {
+  background: rgba(255, 122, 90, 0.18);
+  color: #ff7a5a;
+}
+
+.pill--error .pill__label {
+  color: #ffc4b3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill {
+    animation: none;
+  }
+
+  .pill__loader i {
+    transform: none;
+    animation: loader-fade 1.6s ease-in-out infinite;
+  }
+}

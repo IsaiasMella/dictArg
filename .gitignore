@@ -1,0 +1,79 @@
+# ─── Secretos ────────────────────────────────────────────────
+# Nada de esto entra al repositorio. Si algo de acá se llega a
+# commitear, no alcanza con borrarlo después: queda en el historial
+# y hay que rotar la credencial.
+
+.env
+.env.*
+!.env.example
+
+# Clave privada del actualizador. Si se filtra, cualquiera puede
+# firmar un instalador que tus usuarios van a aceptar como tuyo.
+*.key
+!*.key.pub
+
+# Certificados de firma de código y de desarrollo para MSIX.
+*.pfx
+*.p12
+*.cer
+*.crt
+devcert*
+
+# Por si alguna vez se copia la base o las credenciales locales
+# al proyecto para depurar.
+credentials.json
+voice.db
+voice.db-*
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+
+# Grabaciones de prueba.
+*.wav
+*.mp3
+*.webm
+*.ogg
+*.m4a
+
+# ─── Dependencias y compilación ──────────────────────────────
+
+node_modules
+dist
+dist-ssr
+*.tsbuildinfo
+
+# El backend de Rust ignora su propio target/ en apps/desktop/src-tauri/.gitignore
+
+# ─── Artefactos que se regeneran ─────────────────────────────
+
+# Instaladores y manifiesto que arma scripts/publish-update.mjs.
+updates/
+apps/desktop/updates/
+
+# Empaquetado MSIX para la tienda de Microsoft.
+msix-stage/
+*.msix
+*.msixbundle
+
+# Lienzo de diseño ya ensamblado (2+ MB). Las fuentes son los
+# .dc.html y canvas.json de al lado; esto se vuelve a generar.
+design/*.html
+!design/*.dc.html
+apps/desktop/design/*.html
+!apps/desktop/design/*.dc.html
+
+# ─── Entorno y herramientas ──────────────────────────────────
+
+.venv
+*.local
+*.log
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+.DS_Store
+Thumbs.db
+desktop.ini
