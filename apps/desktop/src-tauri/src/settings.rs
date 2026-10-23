@@ -178,7 +178,7 @@ pub fn save_settings(app: AppHandle, mut settings: Settings) -> Result<SettingsV
     // Un fallo acá no invalida el guardado; queda reflejado en `effectiveShortcut`,
     // que la UI compara contra lo pedido para avisar.
     if let Err(e) = crate::shortcut::register(&app, &settings.shortcut) {
-        eprintln!("[voice] {e}");
+        eprintln!("[dictarg] {e}");
     }
     Ok(view_of(&app, settings))
 }

@@ -1,4 +1,4 @@
-// Arranca el modo desarrollo, bajando primero cualquier Voice que esté corriendo.
+// Arranca el modo desarrollo, bajando primero cualquier Dictarg que esté corriendo.
 //
 // Sin esto, `tauri dev` con la app instalada abierta parece no hacer nada: el
 // plugin de instancia única detecta el arranque duplicado, le pasa el foco a la
@@ -19,7 +19,7 @@ if (command) {
   const killed = spawnSync(command, args, { stdio: "ignore" });
   // Código 128 en Windows y 1 en pkill significan "no había ninguno": no es error.
   if (killed.status === 0) {
-    console.log("[voice] cerré la instancia que estaba corriendo");
+    console.log("[dictarg] cerré la instancia que estaba corriendo");
   }
 }
 

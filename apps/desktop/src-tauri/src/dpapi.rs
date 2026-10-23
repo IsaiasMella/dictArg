@@ -122,7 +122,7 @@ pub fn cifrar(claro: &str) -> Option<Vec<u8>> {
         Err(e) => {
             // No es fatal: se cae a texto plano, que es como estaba antes. Peor sería
             // no poder guardar la credencial.
-            eprintln!("[voice] no se pudo cifrar credentials.json, queda en claro: {e}");
+            eprintln!("[dictarg] no se pudo cifrar credentials.json, queda en claro: {e}");
             None
         }
     }
@@ -140,7 +140,7 @@ pub fn descifrar(bruto: &[u8]) -> Option<String> {
     match imp::desproteger(cifrado) {
         Ok(claro) => String::from_utf8(claro).ok(),
         Err(e) => {
-            eprintln!("[voice] no se pudo descifrar credentials.json: {e}");
+            eprintln!("[dictarg] no se pudo descifrar credentials.json: {e}");
             None
         }
     }

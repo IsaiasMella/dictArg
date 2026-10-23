@@ -183,7 +183,7 @@ struct Message {
 /// `reasoning_effort: "low"`: formatear no requiere pensar mucho, y cada segundo de
 /// razonamiento es un segundo más con la persona esperando que aparezca el texto.
 /// Si el proveedor rechazara el parámetro, el pedido falla y se pega el crudo: el
-/// síntoma es `[voice] no se pudo formatear` en cada dictado.
+/// síntoma es `[dictarg] no se pudo formatear` en cada dictado.
 fn pedido(texto: &str) -> serde_json::Value {
     json!({
         "model": MODEL,
@@ -205,7 +205,7 @@ pub async fn format(app: &AppHandle, text: &str) -> String {
     match attempt(app, text).await {
         Ok(formatted) => formatted,
         Err(reason) => {
-            eprintln!("[voice] no se pudo formatear, va el texto crudo: {reason}");
+            eprintln!("[dictarg] no se pudo formatear, va el texto crudo: {reason}");
             text.to_string()
         }
     }

@@ -90,7 +90,7 @@ fn place_pill_command(app: AppHandle) {
 /// Ninguna carga pisa una variable que ya exista: gana la primera que la define.
 fn load_env(app: &AppHandle) {
     if dotenvy::dotenv().is_ok() {
-        eprintln!("[voice] credenciales: .env del proyecto");
+        eprintln!("[dictarg] credenciales: .env del proyecto");
         return;
     }
 
@@ -100,7 +100,7 @@ fn load_env(app: &AppHandle) {
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
             if dotenvy::from_path(dir.join(".env")).is_ok() {
-                eprintln!("[voice] credenciales: .env junto al ejecutable");
+                eprintln!("[dictarg] credenciales: .env junto al ejecutable");
                 return;
             }
         }
@@ -111,12 +111,12 @@ fn load_env(app: &AppHandle) {
     // donde ya viven los ajustes.
     if let Ok(dir) = app.path().app_config_dir() {
         if dotenvy::from_path(dir.join(".env")).is_ok() {
-            eprintln!("[voice] credenciales: .env en {}", dir.display());
+            eprintln!("[dictarg] credenciales: .env en {}", dir.display());
             return;
         }
     }
 
-    eprintln!("[voice] no se encontró ningún .env; las credenciales tienen que salir del llavero");
+    eprintln!("[dictarg] no se encontró ningún .env; las credenciales tienen que salir del llavero");
 }
 
 pub fn run() {
@@ -180,7 +180,7 @@ pub fn run() {
             let prefs = settings::load(&handle);
             if let Err(e) = shortcut::register(&handle, &prefs.shortcut) {
                 // No es fatal: la app sigue viva y la UI puede mostrar el problema.
-                eprintln!("[voice] {e}");
+                eprintln!("[dictarg] {e}");
                 let _ = handle.emit("dictation-shortcut-error", e);
             }
 

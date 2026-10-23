@@ -61,7 +61,7 @@ pub fn asegurar(app: &AppHandle) {
     // Un fallo acá no puede tumbar el arranque: que Voice no quede registrado es una
     // molestia, que no abra es el producto roto.
     if let Err(e) = manager.enable() {
-        eprintln!("[voice] no se pudo registrar el arranque automático: {e}");
+        eprintln!("[dictarg] no se pudo registrar el arranque automático: {e}");
     }
 }
 
@@ -86,7 +86,7 @@ pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<AutostartStatus, S
     if prefs.autostart_optout == enabled {
         prefs.autostart_optout = !enabled;
         if let Err(e) = crate::settings::store(&app, &prefs) {
-            eprintln!("[voice] {e}");
+            eprintln!("[dictarg] {e}");
         }
     }
 

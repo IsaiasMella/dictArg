@@ -127,7 +127,7 @@ fn recover(app: &AppHandle) {
     }
 
     let veces = RECOVERIES.fetch_add(1, Ordering::SeqCst) + 1;
-    eprintln!("[voice] el webview no respondió al atajo; recargando (van {veces} en esta sesión)");
+    eprintln!("[dictarg] el webview no respondió al atajo; recargando (van {veces} en esta sesión)");
 
     // La notificación va por el sistema operativo y no por la pastilla a propósito:
     // si lo que se cayó es el proceso de WebView2, la pastilla también está muerta y
@@ -181,7 +181,7 @@ fn restore(app: &AppHandle, etiqueta: &str) {
         .find(|w| w.label == etiqueta)
         .cloned()
     else {
-        eprintln!("[voice] no hay configuración para la ventana {etiqueta}: no se puede recrear");
+        eprintln!("[dictarg] no hay configuración para la ventana {etiqueta}: no se puede recrear");
         return;
     };
 
@@ -194,10 +194,10 @@ fn restore(app: &AppHandle, etiqueta: &str) {
     match tauri::WebviewWindowBuilder::from_config(app, &config) {
         Ok(builder) => {
             if let Err(e) = builder.build() {
-                eprintln!("[voice] no se pudo recrear la ventana {etiqueta}: {e}");
+                eprintln!("[dictarg] no se pudo recrear la ventana {etiqueta}: {e}");
             }
         }
-        Err(e) => eprintln!("[voice] no se pudo preparar la ventana {etiqueta}: {e}"),
+        Err(e) => eprintln!("[dictarg] no se pudo preparar la ventana {etiqueta}: {e}"),
     }
 }
 

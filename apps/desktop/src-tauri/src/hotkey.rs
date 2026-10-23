@@ -427,7 +427,7 @@ pub fn install(app: AppHandle) {
     std::thread::spawn(|| unsafe {
         let hook = SetWindowsHookExW(WH_KEYBOARD_LL, Some(proc), None, 0);
         if hook.is_err() {
-            eprintln!("[voice] no se pudo instalar el hook de teclado");
+            eprintln!("[dictarg] no se pudo instalar el hook de teclado");
             return;
         }
 

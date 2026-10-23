@@ -404,7 +404,7 @@ export class DictationController {
     try {
       await saveTranscription({ text, durationSeconds, model });
     } catch (error) {
-      console.error("[voice] no se pudo guardar en el historial:", error);
+      console.error("[dictarg] no se pudo guardar en el historial:", error);
       return false;
     }
 
@@ -412,7 +412,7 @@ export class DictationController {
     try {
       await emit(EVENTS.historyChanged);
     } catch (error) {
-      console.error("[voice] no se pudo avisar que cambió el historial:", error);
+      console.error("[dictarg] no se pudo avisar que cambió el historial:", error);
     }
     return true;
   }
@@ -422,7 +422,7 @@ export class DictationController {
     try {
       await pruneOldTranscriptions(this.settings?.historyRetentionDays ?? 90);
     } catch (error) {
-      console.error("[voice] no se pudo podar el historial:", error);
+      console.error("[dictarg] no se pudo podar el historial:", error);
     }
   }
 
@@ -547,7 +547,7 @@ export async function guardarYPegar(
   pegar: () => Promise<void>,
 ): Promise<void> {
   const guardado = await guardar().catch((error: unknown) => {
-    console.error("[voice] no se pudo guardar en el historial:", error);
+    console.error("[dictarg] no se pudo guardar en el historial:", error);
     return false;
   });
 

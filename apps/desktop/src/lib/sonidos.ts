@@ -120,7 +120,7 @@ export async function sonar(sonido: Sonido, activados: boolean): Promise<void> {
       tocar(ctx, nota, cero);
     }
   } catch (error) {
-    console.warn("[voice] no se pudo reproducir el sonido:", error);
+    console.warn("[dictarg] no se pudo reproducir el sonido:", error);
   }
 }
 

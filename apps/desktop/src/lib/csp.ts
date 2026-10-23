@@ -18,7 +18,7 @@
 export function reportCspViolations(): void {
   document.addEventListener("securitypolicyviolation", (event) => {
     console.error(
-      "[voice] la CSP bloqueó un recurso.\n" +
+      "[dictarg] la CSP bloqueó un recurso.\n" +
         `  recurso:   ${event.blockedURI}\n` +
         `  directiva: ${event.effectiveDirective}\n` +
         `  política:  ${event.originalPolicy}\n` +

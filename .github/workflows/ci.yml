@@ -1,10 +1,6 @@
 name: CI
 
-# Corre en cada push y en cada PR, no sólo al publicar.
-#
-# Antes el único workflow se disparaba con tags `v*`, así que un commit roto en `main`
-# se descubría el día que se quería publicar: en el peor momento y con la peor
-# información.
+# Corre en cada push y en cada PR.
 #
 # Windows es la plataforma principal del producto y la única donde compila el hook de
 # teclado (`WH_KEYBOARD_LL`), así que la validación corre ahí.
@@ -60,7 +56,7 @@ jobs:
       - name: Tests de Rust
         run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
 
-      # No compila el bundle —eso es caro y es trabajo del workflow de release— pero sí
-      # verifica que el crate entero, tests incluidos, compile.
+      # No compila el bundle, que es caro, pero sí verifica que el crate entero, tests
+      # incluidos, compile.
       - name: Que Rust compile
         run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets
